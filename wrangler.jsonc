@@ -1,0 +1,23 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "airvpn-history-worker",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-16",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "airvpn-history",
+      "database_id": "9b468891-b0cb-4f9b-854c-225625a27997"
+    }
+  ],
+  "triggers": {
+    "crons": [
+      "*/5 * * * *",
+      "0 3 * * *"
+    ]
+  }
+}
