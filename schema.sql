@@ -1,4 +1,4 @@
--- Raw snapshots, one row per server per collection cycle (every 5 min).
+-- Raw snapshots, one row per server per collection cycle (every 15 min).
 -- Kept for 7 days, then aggregated into server_snapshots_hourly and purged.
 CREATE TABLE IF NOT EXISTS server_snapshots (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

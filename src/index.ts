@@ -18,7 +18,7 @@ function isAuthorized(request: Request, env: Env): boolean {
   return !!env.COLLECT_SECRET && provided === env.COLLECT_SECRET;
 }
 
-const COLLECT_CRON = "*/5 * * * *";
+const COLLECT_CRON = "*/15 * * * *";
 const MAINTENANCE_CRON = "0 3 * * *";
 
 export default {

@@ -5,12 +5,14 @@ stores server snapshots in D1, and exposes an HTTP API for historical trends
 and load-based rankings. Built to back the Air-Dash iOS app's server list.
 
 Stays within Cloudflare's free tier: Workers (100k req/day), D1 (5 GB, 5M
-rows read / 100k rows written per day). At a 5-minute collection interval and
-~80 AirVPN servers, that's ~23k rows written per day.
+rows read / 100k rows written per day). Collection interval was originally
+5 minutes but that put steady-state writes (inserts + the daily retention
+cleanup's deletes, which D1 also bills as writes) at ~300k rows/day, well
+over the 100k/day free limit — moved to 15 minutes to stay under it.
 
 ## How it works
 
-- **Collection** (`*/5 * * * *`): fetches `POST https://airvpn.org/api/status/`
+- **Collection** (`*/15 * * * *`): fetches `POST https://airvpn.org/api/status/`
   and inserts one row per server into `server_snapshots`. On network failure
   or HTTP 429, the cycle is skipped and logged; the next cron run retries.
 - **Maintenance** (`0 3 * * *`, daily): aggregates `server_snapshots` rows
@@ -58,7 +60,7 @@ Scheduled handlers aren't triggered automatically in local dev. Trigger them
 manually:
 
 ```bash
-curl "http://localhost:8787/cdn-cgi/local/scheduled?cron=*/5+*+*+*+*"   # collection
+curl "http://localhost:8787/cdn-cgi/local/scheduled?cron=*/15+*+*+*+*"  # collection
 curl "http://localhost:8787/cdn-cgi/local/scheduled?cron=0+3+*+*+*"     # maintenance
 ```
 
