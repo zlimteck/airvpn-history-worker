@@ -159,7 +159,7 @@ export async function handleRanking(db: D1Database, url: URL): Promise<Response>
          MAX(location) AS location,
          AVG(load_percent) AS avg_load_percent,
          COUNT(*) AS sample_count
-       FROM server_snapshots
+       FROM server_snapshots INDEXED BY idx_server_snapshots_time
        WHERE recorded_at >= ?
        GROUP BY server_name
        ORDER BY avg_load_percent ASC`
@@ -195,7 +195,7 @@ export async function handleReliability(db: D1Database, url: URL): Promise<Respo
     const hourlyResult = await db
       .prepare(
         `SELECT server_name, health, COUNT(*) AS cnt
-         FROM server_snapshots_hourly
+         FROM server_snapshots_hourly INDEXED BY idx_server_snapshots_hourly_time
          WHERE recorded_at >= ? AND recorded_at < ?
          GROUP BY server_name, health`
       )
@@ -207,7 +207,7 @@ export async function handleReliability(db: D1Database, url: URL): Promise<Respo
   const rawResult = await db
     .prepare(
       `SELECT server_name, health, COUNT(*) AS cnt
-       FROM server_snapshots
+       FROM server_snapshots INDEXED BY idx_server_snapshots_time
        WHERE recorded_at >= ?
        GROUP BY server_name, health`
     )

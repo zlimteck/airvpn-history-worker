@@ -17,6 +17,12 @@ CREATE TABLE IF NOT EXISTS server_snapshots (
 CREATE INDEX IF NOT EXISTS idx_server_snapshots_name_time
   ON server_snapshots (server_name, recorded_at);
 
+-- Covers queries that filter by recorded_at only (ranking, reliability),
+-- which can't use the (server_name, recorded_at) index above since they
+-- don't filter on server_name.
+CREATE INDEX IF NOT EXISTS idx_server_snapshots_time
+  ON server_snapshots (recorded_at);
+
 -- Hourly aggregates, one row per server per hour bucket.
 -- Kept for 30 days, then purged.
 CREATE TABLE IF NOT EXISTS server_snapshots_hourly (
@@ -35,3 +41,6 @@ CREATE TABLE IF NOT EXISTS server_snapshots_hourly (
 
 CREATE INDEX IF NOT EXISTS idx_server_snapshots_hourly_name_time
   ON server_snapshots_hourly (server_name, recorded_at);
+
+CREATE INDEX IF NOT EXISTS idx_server_snapshots_hourly_time
+  ON server_snapshots_hourly (recorded_at);
