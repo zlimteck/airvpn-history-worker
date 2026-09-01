@@ -44,3 +44,20 @@ CREATE INDEX IF NOT EXISTS idx_server_snapshots_hourly_name_time
 
 CREATE INDEX IF NOT EXISTS idx_server_snapshots_hourly_time
   ON server_snapshots_hourly (recorded_at);
+
+-- One row per server, upserted every collection cycle. Lets /servers/latest
+-- read a constant ~server-count rows instead of scanning all of
+-- server_snapshots to find each server's most recent row (that scan cost
+-- grows with total history size, not with server count).
+CREATE TABLE IF NOT EXISTS server_latest (
+  server_name TEXT PRIMARY KEY,
+  country_name TEXT,
+  country_code TEXT,
+  location TEXT,
+  load_percent INTEGER NOT NULL,
+  bw_current INTEGER,
+  bw_max INTEGER,
+  users_count INTEGER,
+  health TEXT NOT NULL,
+  recorded_at INTEGER NOT NULL
+);

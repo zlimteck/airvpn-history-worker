@@ -118,15 +118,9 @@ export async function handleHistory(db: D1Database, url: URL): Promise<Response>
 export async function handleLatest(db: D1Database): Promise<Response> {
   const result = await db
     .prepare(
-      `SELECT s.server_name, s.country_name, s.country_code, s.location, s.load_percent, s.bw_current, s.bw_max, s.users_count, s.health, s.recorded_at
-       FROM server_snapshots s
-       INNER JOIN (
-         SELECT server_name, MAX(recorded_at) AS max_time
-         FROM server_snapshots
-         GROUP BY server_name
-       ) latest
-       ON s.server_name = latest.server_name AND s.recorded_at = latest.max_time
-       ORDER BY s.server_name ASC`
+      `SELECT server_name, country_name, country_code, location, load_percent, bw_current, bw_max, users_count, health, recorded_at
+       FROM server_latest
+       ORDER BY server_name ASC`
     )
     .all<SnapshotRow>();
 
