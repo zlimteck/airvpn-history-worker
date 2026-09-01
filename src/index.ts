@@ -18,11 +18,32 @@ function isAuthorized(request: Request, env: Env): boolean {
   return !!env.COLLECT_SECRET && provided === env.COLLECT_SECRET;
 }
 
+// ranking/reliability are global aggregates identical for every caller at a
+// given moment, and the underlying data only changes once per collection
+// cycle — so their D1 cost shouldn't scale with request volume. Cache the
+// HTTP response at the edge instead of recomputing per request.
+const EDGE_CACHE_TTL_SECONDS = 300;
+
+async function withEdgeCache(request: Request, ctx: ExecutionContext, compute: () => Promise<Response>): Promise<Response> {
+  const cache = caches.default;
+  const cached = await cache.match(request);
+  if (cached) return cached;
+
+  const response = await compute();
+  if (response.status === 200) {
+    const cacheable = new Response(response.body, response);
+    cacheable.headers.set("Cache-Control", `public, max-age=${EDGE_CACHE_TTL_SECONDS}`);
+    ctx.waitUntil(cache.put(request, cacheable.clone()));
+    return cacheable;
+  }
+  return response;
+}
+
 const COLLECT_CRON = "*/15 * * * *";
 const MAINTENANCE_CRON = "0 3 * * *";
 
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     if (request.method === "OPTIONS") {
       return corsPreflight();
     }
@@ -44,10 +65,10 @@ export default {
         return await handleLatest(env.DB);
       }
       if (url.pathname === "/servers/ranking") {
-        return await handleRanking(env.DB, url);
+        return await withEdgeCache(request, ctx, () => handleRanking(env.DB, url));
       }
       if (url.pathname === "/servers/reliability") {
-        return await handleReliability(env.DB, url);
+        return await withEdgeCache(request, ctx, () => handleReliability(env.DB, url));
       }
       if (url.pathname === "/internal/collect") {
         if (!isAuthorized(request, env)) {
