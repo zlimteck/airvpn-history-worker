@@ -9,7 +9,8 @@
     "typecheck": "tsc --noEmit",
     "db:init:local": "wrangler d1 execute airvpn-history --local --file=./schema.sql",
     "db:init:remote": "wrangler d1 execute airvpn-history --remote --file=./schema.sql",
-    "tail": "wrangler tail"
+    "tail": "wrangler tail",
+    "check-quota": "bash scripts/check-quota.sh"
   },
   "keywords": [],
   "author": "",
