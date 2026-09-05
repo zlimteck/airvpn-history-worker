@@ -5,7 +5,15 @@
   "compatibility_date": "2026-08-16",
   "compatibility_flags": ["nodejs_compat"],
   "observability": {
-    "enabled": true
+    "enabled": true,
+    "logs": {
+      // Invocation logs include request metadata (source IP among it),
+      // retained 3 days on the Free plan by Cloudflare. Disabled since we
+      // don't need it and don't want that IP retention. console.error calls
+      // in the code still work (uncaught exceptions still surface via the
+      // dashboard/wrangler tail), just no per-request invocation record.
+      "invocation_logs": false
+    }
   },
   "d1_databases": [
     {
